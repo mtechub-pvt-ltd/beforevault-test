@@ -389,47 +389,127 @@ function HomePage({route, navigation}) {
   };
   // adding share feature 
   const shareFile = async (filePath) => {
+    
     setloading(true);
-    // refRBSheet.current.close();
-     await ReactNativeBlobUtil
-      .config({
-        fileCache: true,
-        appendExt: 'pdf',
-        // add  ios only option here
-        // path:  ReactNativeBlobUtil.fs.dirs.DocumentDir + '/'+actionData.item.name+'.'+actionData.item.doc_type
-        path:  ReactNativeBlobUtil.fs.dirs.DocumentDir + '/'+actionData.item.name+'.'+actionData.item.doc_type
 
-      })
-      .fetch('GET',filePath, {
-        //some headers ..
-      })
-      .then(async (res) => {
-        // the temp file path
-        console.log('The file saved to ', res.path())
-        setloading(false);
-        // return res.readFile('base64')
-        try {
-          const options = {
-            title: 'Share file',
-            url: res.path(),
-            type: 'file/*',
-          };
-      
-          await Share.open(options);
-          refRBSheet.current.close();
-        } catch (error) {
-          refRBSheet.current.close();
-          console.log('Error sharing file:', error);
+    // check if file is pdf or not
+
+      if(actionData.item.doc_type=='pdf'){
+        var filename1=actionData.item.name.split('.').slice(0, -1).join('.');
+        await ReactNativeBlobUtil
+        .config({
+          fileCache: true,
+          appendExt: 'pdf',
+          // add  ios only option here
+          // path:  ReactNativeBlobUtil.fs.dirs.DocumentDir + '/'+actionData.item.name+'.'+actionData.item.doc_type
+          path:  ReactNativeBlobUtil.fs.dirs.DocumentDir + '/'+filename1+'.pdf'
+
+        })
+        .fetch('GET',filePath, {
+          //some headers ..
+        })
+        .then(async (res) => {
+          // the temp file path
+          console.log('The file saved to ', res.path())
+          setloading(false);
+          // return res.readFile('base64')
+          try {
+            const options = {
+              title: 'Share file',
+              url: Platform.OS === 'android' ? 'file://' + res.path() : '' + res.path() ,
+              type: 'file/*',
+              // type: 'image/*',
+            };
+        
+            await Share.open(options);
+            refRBSheet.current.close();
+          } catch (error) {
+            refRBSheet.current.close();
+            console.log('Eror sharing file:', errorr);
+          }
         }
+        )
+        .catch((err) => {
+          console.log(err)
+        alert('Error : ' + err); 
+        })
+      } else if (
+        actionData.item.doc_type.toLowerCase() == 'png' ||
+        actionData.item.doc_type.toLowerCase() == 'jpeg' ||
+        actionData.item.doc_type.toLowerCase() == 'jpg' ||
+        actionData.item.doc_type.toLowerCase() == 'gif' ||
+        actionData.item.doc_type.toLowerCase() == 'bmp'
+        ) {
+        var InsertAPIURL = base_url + '/pdf/createPDFforDownload.php?filelink='+filePath;
+        var headers = {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        };
+    
+        await fetch(InsertAPIURL, {
+            method: 'GET',
+            headers: headers,
+            // body: JSON.stringify({
+            //   filelink: filePath,
+            // }),
+          })
+          .then(response => response.json())
+          .then(async response => {
+            
+            var filename1=actionData.item.name.split('.').slice(0, -1).join('.');
+    
+            var filelink=base_url+response.filelink;
+            await ReactNativeBlobUtil
+            .config({
+              fileCache: true,
+              appendExt: 'pdf',
+              // add  ios only option here
+              // path:  ReactNativeBlobUtil.fs.dirs.DocumentDir + '/'+actionData.item.name+'.'+actionData.item.doc_type
+              path:  ReactNativeBlobUtil.fs.dirs.DocumentDir + '/'+filename1+'.pdf'
+    
+            })
+            .fetch('GET',filelink, {
+              //some headers ..
+            })
+            .then(async (res) => {
+              // the temp file path
+              console.log('The file saved to ', res.path())
+              setloading(false);
+              // return res.readFile('base64')
+              try {
+                const options = {
+                  title: 'Share file',
+                  url: Platform.OS === 'android' ? 'file://' + res.path() : '' + res.path() ,
+                  type: 'file/pdf',
+                  // type: 'image/*',
+                };
+            
+                await Share.open(options);
+                refRBSheet.current.close();
+              } catch (error) {
+                refRBSheet.current.close();
+                console.log('Eror sharing file:', errorr);
+              }
+            }
+            )
+            .catch((err) => {
+              console.log(err)
+            alert('Error : ' + err); 
+            })
+    
+          })
+          .catch(error => {
+            console.log('error',error)
+          });
+      } else {
+        setloading(false);
+        alert(actionData.item.uniq_id)
       }
-      )
-      .catch((err) => {
-        console.log(err)
-      alert('Error : ' + err); 
-      }
-      )
 
     
+
+    
+      
   };
   useEffect(() => {
     getData();

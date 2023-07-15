@@ -126,7 +126,7 @@ phone_no=='' || phone_no.length==0
           data: Platform.OS === 'ios' ? ReactNativeBlobUtil.wrap(decodeURIComponent(image.path)) :ReactNativeBlobUtil.wrap(decodeURIComponent(image.path.replace('file://', 'file:///')))
       }
       ,
-        {name:'id',data:userDetail.user_id},
+        {name:'user_id',data:userDetail.user_id},
         {name:'first_name',data:first_name},
         {name:'last_name',data:last_name},
         {name:'phono_code',data:phono_code},
